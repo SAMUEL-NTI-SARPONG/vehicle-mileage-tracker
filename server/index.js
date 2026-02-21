@@ -20,7 +20,10 @@ app.use(async (req, res, next) => {
                 await seed();
                 dbReady = true;
                 console.log('Database initialized and seeded.');
-            })();
+            })().catch(err => {
+                dbInitPromise = null; // Reset so next request retries
+                throw err;
+            });
         }
         try {
             await dbInitPromise;

@@ -27,7 +27,10 @@ const SCHEMA = [
 async function initDatabase() {
     if (db) return db;
 
-    const SQL = await initSqlJs();
+    var sqliteOptions = isVercel ? {
+        locateFile: function(file) { return 'https://sql.js.org/dist/' + file; }
+    } : {};
+    var SQL = await initSqlJs(sqliteOptions);
 
     if (!isVercel && dbPath && fs.existsSync(dbPath)) {
         var fileBuffer = fs.readFileSync(dbPath);
