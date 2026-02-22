@@ -51,13 +51,14 @@ const DataStore = {
                 ApiClient.getSettings()
             ]);
 
-            if (vehiclesRes && vehiclesRes.vehicles) this.set(this.KEYS.VEHICLES, vehiclesRes.vehicles);
-            if (mileageRes && mileageRes.logs) this.set(this.KEYS.MILEAGE_LOGS, mileageRes.logs);
-            if (alertsRes && alertsRes.alerts) this.set(this.KEYS.ALERTS, alertsRes.alerts);
-            if (activityRes && activityRes.activities) this.set(this.KEYS.ACTIVITY, activityRes.activities);
-            if (settingsRes && settingsRes.settings) {
+            // Server returns direct arrays/objects (not wrapped)
+            if (vehiclesRes && Array.isArray(vehiclesRes)) this.set(this.KEYS.VEHICLES, vehiclesRes);
+            if (mileageRes && Array.isArray(mileageRes)) this.set(this.KEYS.MILEAGE_LOGS, mileageRes);
+            if (alertsRes && Array.isArray(alertsRes)) this.set(this.KEYS.ALERTS, alertsRes);
+            if (activityRes && Array.isArray(activityRes)) this.set(this.KEYS.ACTIVITY, activityRes);
+            if (settingsRes && typeof settingsRes === 'object' && !Array.isArray(settingsRes)) {
                 const current = this.getSettings();
-                this.set(this.KEYS.SETTINGS, { ...current, ...settingsRes.settings });
+                this.set(this.KEYS.SETTINGS, { ...current, ...settingsRes });
             }
             return true;
         } catch (err) {

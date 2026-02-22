@@ -86,6 +86,7 @@ router.post('/', authenticate, (req, res) => {
 
         const log = queryOne('SELECT * FROM maintenance_logs WHERE id = ?', [logId]);
         res.status(201).json({
+            success: true,
             id: log.id,
             vehicleId: log.vehicle_id,
             artisanName: log.artisan_name,

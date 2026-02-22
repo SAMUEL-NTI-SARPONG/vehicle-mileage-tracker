@@ -74,7 +74,7 @@ const MaintenanceManager = {
                 maintenanceDate, repairWork, cost, notes, resetMileage
             });
 
-            if (result && result.success) {
+            if (result && (result.success || result.id)) {
                 UI.showToast('success', 'Maintenance Logged', 'Maintenance record has been saved');
                 if (resetMileage) {
                     UI.showToast('info', 'Mileage Reset', 'Vehicle mileage has been reset to 0');
@@ -96,8 +96,8 @@ const MaintenanceManager = {
 
         try {
             var result = await ApiClient.getMaintenanceLogs();
-            if (result && result.logs) {
-                this.logs = result.logs;
+            if (result && Array.isArray(result)) {
+                this.logs = result;
             }
         } catch (err) {
             console.warn('[Maintenance] Failed to fetch logs:', err.message);

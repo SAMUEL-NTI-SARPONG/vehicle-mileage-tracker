@@ -63,9 +63,10 @@ const UserManager = {
 
         try {
             var result = await ApiClient.createUser({ name, staffId, username, role, password, phone });
-            if (result && result.success) {
-                UI.showToast('success', 'User Created', 'User ' + name + ' has been created');
+            if (result && (result.id || result.success)) {
+                UI.showToast('success', 'User Created', 'User ' + name + ' has been created successfully');
                 document.getElementById('modal-create-user').classList.add('hidden');
+                document.getElementById('create-user-form').reset();
                 this.render();
             } else {
                 UI.showToast('error', 'Error', result ? result.error : 'Failed to create user');
@@ -85,8 +86,8 @@ const UserManager = {
 
         try {
             var result = await ApiClient.getUsers();
-            if (result && result.users) {
-                this.users = result.users;
+            if (result && Array.isArray(result)) {
+                this.users = result;
             }
         } catch (err) {
             console.warn('[Users] Failed to fetch users:', err.message);

@@ -31,8 +31,8 @@ const App = {
         if (Auth.init()) {
             UI.showApp();
             this.refreshAll();
-            // Sync with server in background
-            this.syncWithServer();
+            // Sync with server and refresh again when data is ready
+            this.syncWithServer().then(() => this.refreshAll());
         } else {
             UI.showLogin();
         }
@@ -57,18 +57,18 @@ const App = {
         if (showRegLink) {
             showRegLink.addEventListener('click', function(e) {
                 e.preventDefault();
-                document.getElementById('login-form').style.display = 'none';
-                document.querySelector('.login-footer').style.display = 'none';
-                document.getElementById('register-form').style.display = '';
+                document.getElementById('login-form').classList.add('hidden');
+                document.querySelector('.login-footer').classList.add('hidden');
+                document.getElementById('register-form').classList.remove('hidden');
             });
         }
         var showLoginLink = document.getElementById('show-login-link');
         if (showLoginLink) {
             showLoginLink.addEventListener('click', function(e) {
                 e.preventDefault();
-                document.getElementById('register-form').style.display = 'none';
-                document.getElementById('login-form').style.display = '';
-                document.querySelector('.login-footer').style.display = '';
+                document.getElementById('register-form').classList.add('hidden');
+                document.getElementById('login-form').classList.remove('hidden');
+                document.querySelector('.login-footer').classList.remove('hidden');
             });
         }
 
@@ -86,12 +86,12 @@ const App = {
         var password = document.getElementById('login-password').value;
         var errorDiv = document.getElementById('login-error');
 
-        if (errorDiv) errorDiv.style.display = 'none';
+        if (errorDiv) { errorDiv.classList.add('hidden'); errorDiv.textContent = ''; }
 
         if (!username || !password) {
             if (errorDiv) {
                 errorDiv.textContent = 'Please enter username and password';
-                errorDiv.style.display = 'block';
+                errorDiv.classList.remove('hidden');
             } else {
                 UI.showToast('error', 'Login Error', 'Please enter username and password');
             }
@@ -107,16 +107,16 @@ const App = {
         try {
             var result = await Auth.login(username, password);
             if (result.success) {
-                if (errorDiv) errorDiv.style.display = 'none';
+                if (errorDiv) { errorDiv.classList.add('hidden'); errorDiv.textContent = ''; }
                 UI.showApp();
-                this.refreshAll();
                 UI.showToast('success', 'Welcome', 'Logged in as ' + result.user.name);
-                // Sync data from server
-                this.syncWithServer();
+                // Sync data from server first, then refresh UI
+                await this.syncWithServer();
+                this.refreshAll();
             } else {
                 if (errorDiv) {
                     errorDiv.textContent = result.message || 'Invalid username or password. Please check your credentials and try again.';
-                    errorDiv.style.display = 'block';
+                    errorDiv.classList.remove('hidden');
                 } else {
                     UI.showToast('error', 'Login Failed', result.message);
                 }
@@ -124,7 +124,7 @@ const App = {
         } catch (err) {
             if (errorDiv) {
                 errorDiv.textContent = err.message || 'Failed to connect to server';
-                errorDiv.style.display = 'block';
+                errorDiv.classList.remove('hidden');
             } else {
                 UI.showToast('error', 'Login Error', err.message || 'Failed to connect');
             }
@@ -141,34 +141,45 @@ const App = {
         var phone = document.getElementById('reg-phone').value.trim();
         var password = document.getElementById('reg-password').value;
         var confirm = document.getElementById('reg-confirm-password').value;
+        var errorDiv = document.getElementById('register-error');
+
+        if (errorDiv) { errorDiv.classList.add('hidden'); errorDiv.textContent = ''; }
 
         if (!name || !username || !password) {
-            UI.showToast('error', 'Registration Error', 'Please fill in all required fields');
+            if (errorDiv) { errorDiv.textContent = 'Please fill in all required fields'; errorDiv.classList.remove('hidden'); }
+            else UI.showToast('error', 'Registration Error', 'Please fill in all required fields');
             return;
         }
 
         if (password !== confirm) {
-            UI.showToast('error', 'Registration Error', 'Passwords do not match');
+            if (errorDiv) { errorDiv.textContent = 'Passwords do not match'; errorDiv.classList.remove('hidden'); }
+            else UI.showToast('error', 'Registration Error', 'Passwords do not match');
             return;
         }
 
         if (password.length < 4) {
-            UI.showToast('error', 'Registration Error', 'Password must be at least 4 characters');
+            if (errorDiv) { errorDiv.textContent = 'Password must be at least 4 characters'; errorDiv.classList.remove('hidden'); }
+            else UI.showToast('error', 'Registration Error', 'Password must be at least 4 characters');
             return;
         }
 
         try {
             var result = await ApiClient.register({ name, staffId, username, phone, password });
-            if (result && result.success) {
-                UI.showToast('success', 'Registration Submitted', 'Your account is pending admin approval. You will be notified once approved.');
+            if (result && (result.success || result.message)) {
+                UI.showToast('success', 'Registration Submitted', result.message || 'Your account is pending admin approval. You will be notified once approved.');
                 document.getElementById('register-form').reset();
-                document.getElementById('register-form').style.display = 'none';
-                document.getElementById('login-form').style.display = '';
+                document.getElementById('register-form').classList.add('hidden');
+                document.getElementById('login-form').classList.remove('hidden');
+                document.querySelector('.login-footer').classList.remove('hidden');
             } else {
-                UI.showToast('error', 'Registration Failed', result ? result.error : 'Registration failed');
+                var errMsg = result ? result.error : 'Registration failed';
+                if (errorDiv) { errorDiv.textContent = errMsg; errorDiv.classList.remove('hidden'); }
+                else UI.showToast('error', 'Registration Failed', errMsg);
             }
         } catch (err) {
-            UI.showToast('error', 'Registration Error', err.message || 'Failed to connect');
+            var errMsg2 = err.message || 'Failed to connect to server';
+            if (errorDiv) { errorDiv.textContent = errMsg2; errorDiv.classList.remove('hidden'); }
+            else UI.showToast('error', 'Registration Error', errMsg2);
         }
     },
 

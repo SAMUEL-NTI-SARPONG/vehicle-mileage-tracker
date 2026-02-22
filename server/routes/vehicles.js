@@ -31,12 +31,8 @@ function mapVehicle(v) {
 // GET /api/vehicles
 router.get('/', authenticate, (req, res) => {
     try {
-        let vehicles;
-        if (req.user.role === 'driver') {
-            vehicles = queryAll('SELECT * FROM vehicles WHERE driver = ? ORDER BY registration', [req.user.name]);
-        } else {
-            vehicles = queryAll('SELECT * FROM vehicles ORDER BY registration');
-        }
+        // Return ALL vehicles for all users (drivers need fleet overview on dashboard)
+        const vehicles = queryAll('SELECT * FROM vehicles ORDER BY registration');
         res.json(vehicles.map(mapVehicle));
     } catch (err) {
         console.error('Get vehicles error:', err);

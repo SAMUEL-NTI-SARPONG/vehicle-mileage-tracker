@@ -19,23 +19,10 @@ const Dashboard = {
 
     updateStats() {
         const stats = DataStore.getStats();
-        if (Auth.isDriver()) {
-            // Show only driver's vehicle stats
-            const user = Auth.getCurrentUser();
-            const vehicles = DataStore.getVehicles().filter(v => v.driver === user.name && v.status === 'active');
-            const normal = vehicles.filter(v => DataStore.getVehicleStatus(v) === 'normal').length;
-            const warning = vehicles.filter(v => DataStore.getVehicleStatus(v) === 'warning').length;
-            const exceeded = vehicles.filter(v => DataStore.getVehicleStatus(v) === 'exceeded').length;
-            document.getElementById('stat-total').textContent = vehicles.length;
-            document.getElementById('stat-normal').textContent = normal;
-            document.getElementById('stat-warning').textContent = warning;
-            document.getElementById('stat-exceeded').textContent = exceeded;
-        } else {
-            document.getElementById('stat-total').textContent = stats.total;
-            document.getElementById('stat-normal').textContent = stats.normal;
-            document.getElementById('stat-warning').textContent = stats.warning;
-            document.getElementById('stat-exceeded').textContent = stats.exceeded;
-        }
+        document.getElementById('stat-total').textContent = stats.total;
+        document.getElementById('stat-normal').textContent = stats.normal;
+        document.getElementById('stat-warning').textContent = stats.warning;
+        document.getElementById('stat-exceeded').textContent = stats.exceeded;
     },
 
     updateCharts() {

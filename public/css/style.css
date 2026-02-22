@@ -214,10 +214,6 @@ body {
     text-align: center;
 }
 
-.login-error.hidden {
-    display: none;
-}
-
 .login-hint {
     text-align: center;
     margin-top: 16px;
